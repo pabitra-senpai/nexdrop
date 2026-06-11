@@ -2,6 +2,8 @@
 
 Host **any file** on GitHub and get instant CDN-accelerated links via jsDelivr. Images, videos, audio, PDFs, archives, code — everything.
 
+🌐 **Live Demo:** [pabitra-senpai.github.io/nexdrop](https://pabitra-senpai.github.io/nexdrop/)
+
 ```
 GitHub Repository ← Cloudflare Worker ← Nexdrop UI
                             ↓
