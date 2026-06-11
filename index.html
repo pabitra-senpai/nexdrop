@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexdrop — Universal File CDN</title>
+  <meta name="description" content="Host any file on GitHub. Get instant CDN links." />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════ NAVBAR ══════════════ -->
+  <header class="navbar">
+    <a class="brand" href="#">
+      <div class="brand-mark">
+        <i class="fa-solid fa-bolt"></i>
+      </div>
+      <span class="brand-name">Nexdrop</span>
+      <span class="brand-tag">CDN</span>
+    </a>
+
+    <nav class="nav-actions">
+      <div id="status-pill" class="status-pill status-unconfigured">
+        <span class="status-dot"></span>
+        <span class="status-label">Not configured</span>
+      </div>
+      <button class="btn-nav" id="btn-open-settings">
+        <i class="fa-solid fa-sliders"></i>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- ══════════════ MAIN ══════════════ -->
+  <main>
+
+    <!-- Config Warning Banner -->
+    <div id="config-warning" class="alert-banner hidden">
+      <div class="alert-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div class="alert-body">
+        <strong>Worker URL not configured</strong>
+        <span>Add your Cloudflare Worker URL to start uploading files via GitHub.</span>
+      </div>
+      <button id="btn-configure-now">Configure now →</button>
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace">
+
+      <!-- LEFT: Upload Panel -->
+      <aside class="upload-panel">
+        <div class="panel-label">Upload</div>
+
+        <!-- Dropzone -->
+        <div id="dropzone">
+          <input type="file" id="fileInput" style="display:none" />
+          <div class="dz-icon">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+          </div>
+          <p class="dz-title">Drop any file here</p>
+          <p class="dz-sub">or <span class="dz-link">browse files</span></p>
+          <p class="dz-hint">Images · Video · Audio · Docs · Archives · Code</p>
+        </div>
+
+        <!-- Preview -->
+        <div id="preview-container" class="hidden">
+          <div id="file-preview-wrap" class="preview-frame">
+            <!-- filled by JS -->
+          </div>
+          <div class="preview-meta">
+            <div class="preview-filename" id="file-name"></div>
+            <div class="preview-badge mono" id="file-size"></div>
+          </div>
+          <div class="preview-type-badge" id="file-type-badge"></div>
+          <button id="upload-btn" class="btn-upload">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            Upload to GitHub
+          </button>
+          <button id="cancel-preview" class="btn-discard">
+            <i class="fa-solid fa-xmark"></i> Discard
+          </button>
+        </div>
+
+        <!-- Progress -->
+        <div id="progress-container" class="hidden">
+          <div class="progress-meta">
+            <span><i class="fa-solid fa-circle-notch fa-spin" style="margin-right:6px;color:var(--violet)"></i>Uploading…</span>
+            <span id="progress-percent" class="mono">0%</span>
+          </div>
+          <div class="progress-rail">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- RIGHT: Links + Library -->
+      <section class="right-panel">
+
+        <!-- Generated Links -->
+        <div class="links-card">
+          <div class="links-empty" id="placeholder-result">
+            <div class="links-empty-icon"><i class="fa-solid fa-link"></i></div>
+            <p>Upload a file to generate<br>CDN &amp; direct links.</p>
+          </div>
+
+          <div id="links-container" class="links-grid hidden">
+            <div class="link-item link-item--featured">
+              <div class="link-item-header">
+                <span class="link-chip chip-cdn">jsDelivr CDN</span>
+                <span class="link-note">Recommended · fastest globally</span>
+              </div>
+              <div class="link-row-wrap">
+                <input type="text" id="link-cdn" readonly placeholder="CDN URL" />
+                <button class="btn-copy" data-target="link-cdn">
+                  <i class="fa-regular fa-copy"></i> Copy
+                </button>
+              </div>
+            </div>
+
+            <div class="link-item">
+              <div class="link-item-header">
+                <span class="link-chip chip-raw">Raw GitHub</span>
+              </div>
+              <div class="link-row-wrap">
+                <input type="text" id="link-raw" readonly placeholder="Raw URL" />
+                <button class="btn-copy" data-target="link-raw">
+                  <i class="fa-regular fa-copy"></i> Copy
+                </button>
+              </div>
+            </div>
+
+            <div class="link-item" id="link-row-html">
+              <div class="link-item-header">
+                <span class="link-chip chip-html">HTML embed</span>
+              </div>
+              <div class="link-row-wrap">
+                <input type="text" id="link-html" readonly placeholder="Embed tag" />
+                <button class="btn-copy" data-target="link-html">
+                  <i class="fa-regular fa-copy"></i> Copy
+                </button>
+              </div>
+            </div>
+
+            <div class="link-item">
+              <div class="link-item-header">
+                <span class="link-chip chip-md">Markdown</span>
+              </div>
+              <div class="link-row-wrap">
+                <input type="text" id="link-markdown" readonly placeholder="Markdown link" />
+                <button class="btn-copy" data-target="link-markdown">
+                  <i class="fa-regular fa-copy"></i> Copy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Library -->
+        <div class="gallery-section">
+          <div class="gallery-header">
+            <h2 class="gallery-title">
+              <i class="fa-solid fa-box-archive"></i>
+              Library
+            </h2>
+            <div class="gallery-controls">
+              <span id="gallery-count" class="gallery-count hidden"></span>
+              <div class="view-toggle">
+                <button id="btn-view-grid" class="view-btn active" title="Grid view"><i class="fa-solid fa-grip"></i></button>
+                <button id="btn-view-list" class="view-btn" title="List view"><i class="fa-solid fa-list"></i></button>
+              </div>
+              <button id="refresh-gallery" class="btn-icon-label">
+                <i class="fa-solid fa-arrows-rotate"></i> Refresh
+              </button>
+            </div>
+          </div>
+
+          <!-- Search / Filter -->
+          <div class="library-filter">
+            <div class="search-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="search-input" placeholder="Search files…" autocomplete="off" />
+            </div>
+            <div class="filter-chips" id="filter-chips">
+              <button class="fchip active" data-type="all">All</button>
+              <button class="fchip" data-type="image">Images</button>
+              <button class="fchip" data-type="video">Video</button>
+              <button class="fchip" data-type="audio">Audio</button>
+              <button class="fchip" data-type="doc">Docs</button>
+              <button class="fchip" data-type="archive">Archives</button>
+              <button class="fchip" data-type="code">Code</button>
+              <button class="fchip" data-type="other">Other</button>
+            </div>
+          </div>
+
+          <div id="gallery-grid" class="gallery-grid"></div>
+
+          <div id="gallery-loading" class="gallery-state hidden">
+            <div class="loading-ring"></div>
+            <span>Loading library…</span>
+          </div>
+
+          <div id="gallery-empty" class="gallery-state gallery-state--empty hidden">
+            <div class="empty-glyph"><i class="fa-regular fa-folder-open"></i></div>
+            <p class="empty-title">Library is empty</p>
+            <p class="empty-sub">Upload your first file to get started.</p>
+          </div>
+
+          <div id="gallery-no-results" class="gallery-state gallery-state--empty hidden">
+            <div class="empty-glyph"><i class="fa-solid fa-filter-circle-xmark"></i></div>
+            <p class="empty-title">No matches</p>
+            <p class="empty-sub">Try a different search or filter.</p>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+  </main>
+
+  <!-- ══════════════ FILE PREVIEW MODAL (non-image) ══════════════ -->
+  <div id="preview-modal" class="modal-overlay" id="preview-modal">
+    <div class="modal-box modal-box--preview">
+      <div class="modal-head">
+        <div class="modal-icon" id="preview-modal-icon"><i class="fa-solid fa-file"></i></div>
+        <div>
+          <div class="modal-title" id="preview-modal-name">filename.ext</div>
+          <div class="modal-sub" id="preview-modal-meta">—</div>
+        </div>
+        <button class="modal-close-x" id="btn-close-preview-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="preview-modal-body" class="preview-modal-body">
+        <!-- content injected by JS -->
+      </div>
+      <div class="modal-footer" style="margin-top:20px;">
+        <button class="btn-ghost" id="btn-close-preview-modal-2">Close</button>
+        <button class="btn-primary" id="btn-preview-copy-cdn">
+          <i class="fa-regular fa-copy"></i> Copy CDN URL
+        </button>
+        <a class="btn-primary btn-download" id="btn-preview-download" href="#" target="_blank" rel="noopener">
+          <i class="fa-solid fa-arrow-down-to-line"></i> Open / Download
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ LIGHTBOX (images) ══════════════ -->
+  <div id="lightbox" class="lightbox">
+    <div class="lightbox-inner">
+      <button class="lightbox-close" id="btn-lightbox-close"><i class="fa-solid fa-xmark"></i></button>
+      <img id="lightbox-img" src="" alt="" />
+      <div class="lightbox-footer">
+        <span id="lightbox-name" class="mono"></span>
+        <button class="btn-copy-sm" id="lightbox-copy"><i class="fa-regular fa-copy"></i> Copy CDN URL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SETTINGS MODAL ══════════════ -->
+  <div id="config-modal" class="modal-overlay">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-head">
+        <div class="modal-icon"><i class="fa-solid fa-bolt"></i></div>
+        <div>
+          <div class="modal-title">Worker Settings</div>
+          <div class="modal-sub">Connect your Cloudflare Worker to start uploading.</div>
+        </div>
+      </div>
+      <label class="field-label">WORKER URL</label>
+      <input
+        type="url"
+        id="worker-url-input"
+        class="field-input"
+        placeholder="https://your-worker.your-subdomain.workers.dev"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <p class="field-hint">Your GitHub token never leaves the Worker. This URL is stored only in your browser.</p>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="btn-close-settings">Cancel</button>
+        <button class="btn-primary" id="btn-save-settings">
+          <i class="fa-solid fa-floppy-disk"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ DELETE CONFIRM MODAL ══════════════ -->
+  <div id="delete-modal" class="modal-overlay">
+    <div class="modal-box modal-box--sm" onclick="event.stopPropagation()">
+      <div class="delete-icon"><i class="fa-solid fa-trash"></i></div>
+      <div class="modal-title">Delete file?</div>
+      <p class="modal-sub" style="text-align:center;margin-top:6px;">
+        This removes the file from your GitHub repository permanently.
+      </p>
+      <div class="modal-footer" style="margin-top:24px;">
+        <button class="btn-ghost" id="btn-cancel-delete">Keep it</button>
+        <button class="btn-danger" id="confirm-delete-btn">
+          <i class="fa-solid fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TOAST ══════════════ -->
+  <div id="toast" class="toast">
+    <div id="toast-inner" class="toast-inner">
+      <span id="toast-icon" class="toast-icon"><i class="fa-solid fa-circle-check"></i></span>
+      <span id="toast-message">Done</span>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
