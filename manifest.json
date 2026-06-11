@@ -1,0 +1,27 @@
+{
+  "name": "Nexdrop — Universal File CDN",
+  "short_name": "Nexdrop",
+  "description": "Host any file on GitHub and get instant CDN-accelerated links via jsDelivr.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07080d",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
